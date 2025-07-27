@@ -1,0 +1,371 @@
+/* totentanz_styles.css */
+/* Reference for a given type */
+.header {
+  background-color: #05a9a4;
+  width: 100vw;
+  height: 10%;
+}
+
+.header > div {
+  padding: 10px;
+  max-width: min(500px, 100vw);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+headerText {
+  font-size: clamp(0.5em, 7vw, 2em);
+  color: #fff;
+  flex-grow: 1;
+  text-align: center;
+  text-justify: center;
+}
+
+page {
+  background-color: #f3f3f3;
+  padding: 20px;
+  margin: 0 auto;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: min(460px, 100vw - 40px);
+  width: 100vw - 40px;
+}
+
+/*
+.headerButtonLeft {
+  float: left
+}
+
+.headerButtonRight {
+}
+*/
+
+timer {
+  font-size: 15em;
+  color: #000000;
+  text-align: center;
+}
+
+button.headerButton {
+  background-color: #05a9a4;
+  color: #fff;
+  padding: 10px 20px;
+  border-color: #fff;
+  border: 2px;
+  font-size: 1.2em;
+}
+
+/*
+*:disabled {
+    background-color: #960f0f;
+    color: #144680;
+}
+*/
+
+
+button.headerButton:active {
+  background-color: #176d6b;
+}
+
+/* Settings page */
+.settingsObj {
+  background-color: #f9f9f9;
+  padding: 20px;
+  margin: 10px 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 1em;
+  display: flex;
+  flex-direction: row;
+}
+
+.settingsObjTitle {
+  font-size: 1.5em;
+  color: #000000;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.settingsObj>div {
+  flex-direction: column;
+  flex-shrink: 1;
+}
+
+.settingsObj>input {
+  max-width: 100px;
+  height: 20px;
+  align-self: center;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  min-width: 60px;
+  max-width: 60px;
+  height: 34px;
+  margin-left: auto;
+  align-self: center;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked+.slider {
+  background-color: #2196F3;
+}
+
+input:focus+.slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked+.slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+
+
+.light {
+  color: #07b01e;
+}
+
+.normal {
+  color: #0a5ab0;
+}
+
+.serious {
+  color: #b00a0a;
+}
+
+.dropDownMenu {
+  position: relative;
+  display: inline-block;
+}
+
+.fighterList {
+  background-color: #f3f3f3;
+  padding: 10px;
+  margin: 10px 0;
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.fighter {
+  background-color: #dddddd;
+  color: #000;
+  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  justify-content: space-between;
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  align-items: center;
+}
+
+/* For the fighter's name, need a text box that is a set size, so that names of different length don't cause the elements to be out of alignment */
+
+.fighter--retreated {
+  color: #1848c1;
+  background-color: #7193ce;
+}
+
+.fighter--dead {
+  color: #9c2929;
+  background-color: #a15050;
+}
+
+/* For the Menu*/
+
+.menuXY {
+  position: relative;
+}
+
+.dropDownMenu {
+  align-items: center;
+  background-color: #f9f9f9;
+  border-color: #dddddd;
+  border-width: 10px;
+  z-index: 1;
+  position: absolute;
+  min-width: 8em;
+  top: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menuButton {
+  background-color: #f9f9f9;
+  border-width: 0;
+  font-size: medium;
+  min-width: 8em;
+  height: 3em;
+}
+
+.menuButton:hover {
+  background-color: #e1e1e1;
+}
+
+.menuButton.active {
+  background-color: #2a2a2a;
+}
+
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #f9f9f9;
+  border: 1px solid #888;
+  padding: 20px;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+/* For the timer page */
+
+
+
+
+
+.timerBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.timerControls {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: row;
+  width: min(500px, 100vw);
+  margin-top: 20px;
+}
+
+.startButton {
+  width: 140px;
+  height: 50px;
+  font-size: 1.8em;
+}
+
+.timerControls > button {
+  width: 120px;
+  min-height: 40px;
+  font-size: 1em;
+}
+
+.invisible {
+  /*display: none; /*Maybe change to visibility: hidden; */
+  visibility: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+p {
+  font-size: clamp(0.5em, 3vw + 0.1em, 1.5em);
+}
+
+.settingsObjTitle{
+  font-size: clamp(0.5em, 5vw, 2em);
+}
+
+timerlabel {
+  font-size: clamp(0.5em, 4.5vw, 2em);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hitLocationButton {
+  font-size: clamp(0.7em, 2.5vw, 1em);
+  min-width: 80px;
+  height: 40px;
+}
+
+.hitLocationButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+  margin-top: 20px;
+}
+
+.debugInput {
+  max-width: 60px;
+}
+
+.fighterScore {
+  font-size: clamp(1.2em, 3vw, 1.5em);
+  text-align: center;
+}
+
+.fighterName {
+  font-size: clamp(1.2em, 3vw, 1.5em);
+  text-align: center;
+}
+
+.fighterObjButton {
+  max-height: 60px;
+}
+
+.settingsObj > input[type="number"] {
+  margin-left: 5px;
+}
+
+.settingsObj > input[type="text"] {
+  margin-left: 5px;
+}
+
+h4 {
+  font-size: clamp(1.2em, 3vw, 1.5em);
+}

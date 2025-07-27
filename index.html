@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Totentanz Web App</title>
+    <link rel="stylesheet" href="totentanz-styles.css" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="header">
+        <div>
+            <button id="backButton" class="headerButton invisible"><ion-icon name="arrow-back"></ion-icon></button>
+            <headerText id="headerText">Totentanz Timer</headerText>
+            <button id="switchModeButton" class="headerButton"><ion-icon name="trophy-sharp"></ion-icon></button>
+            <div id="menuContainer">
+                <button id="menuButton" class="headerButton"><ion-icon name="menu"></ion-icon></button>
+                <div class="menuXY">
+                    <div id="menu" class="dropDownMenu hidden">
+                        <button id="settingsButton" class="menuButton">Settings</button>
+                        <button id="aboutButton" class="menuButton">About</button>
+                        <button id="instructionsButton" class="menuButton">Instructions</button>
+                        <button id="restartTournamentButton" class="menuButton hidden">Restart Tournament</button>
+                        <button id="clearTournamentButton" class="menuButton hidden">Clear Tournament</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <page id="hitPage">
+        <h3 id="deviceName"></h3>
+        <h1>Choose hit location</h1>
+        <h2>Head</h2>
+        <div class="hitLocationButtons">
+            <button id="headButton" class="hitLocationButton">HEAD</button>
+            <button id="faceButton" class="hitLocationButton">FACE</button>
+            <button id="neckButton" class="hitLocationButton">NECK</button>
+        </div>
+        <h2>Torso</h2>
+        <div class="hitLocationButtons">
+            <button id="chestThrustButton" class="hitLocationButton">CHEST (THRUST)</button>
+            <button id="otherTorsoButton" class="hitLocationButton">OTHER TORSO</button>
+        </div>
+        <h2>Arms and Legs</h2>
+        <div class="hitLocationButtons">
+            <button id="limbsCutButton" class="hitLocationButton">LIMBS (CUT)</button>
+            <button id="limbsThrustButton" class="hitLocationButton">LIMBS (THRUST)</button>
+            <button id="handsButton" class="hitLocationButton">HANDS</button>
+        </div>
+        <h2>Debug</h2>
+        <div class="hitLocationButtons">
+            <input type="number" id="timerInput" class="debugInput" placeholder="0"></input>
+            <button id="setTimerButton" class="hitLocationButton">SET TIMER</button>
+        </div>
+    </page>
+    <page id="severityPage">
+        <h2>Choose severity</h2>
+        <h3 class="debugResults invisible">Results</h3>
+        <div class="hitLocationButtons">
+            <h4 class="debugResults light" id="lightResult"></h4>
+            <h4 class="debugResults normal" id="normalResult"></h4>
+            <h4 class="debugResults serious" id="seriousResult"></h4>
+        </div>
+        <div class="hitLocationButtons">
+            <button class="light hitLocationButton" id="lightButton">LIGHT</button>
+            <button class="normal hitLocationButton" id="normalButton">NORMAL</button>
+            <button class="serious hitLocationButton" id="seriousButton">SERIOUS</button>
+        </div>
+    </page>
+    <page id="settingsPage">
+        <h2>Settings</h2>
+        <div class="settingsObj" id="enableSeverityObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Enable Severity</span>
+                <p>Provides severity options to allow more control over results</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="settingsObj" id="showSeverityResultsObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Show Severity Results</span>
+                <p>Displays hit results on the severity screen - only intended for debugging</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="settingsObj" id="preventOutliersObj">
+            <div class="settingsObjTextContainer">
+
+                <span class="settingsObjTitle">Prevent Outliers</span>
+                <p>While enabled, light hits cannot cause incapacitation, and serious hits cannot do nothing</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" checked>
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="settingsObj" id="hideTimerObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Hide Timer</span>
+                <p>Hides the timer to help inexperienced judges remain impartial</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <div class="settingsObj" id="cumulativeWoundsObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Cumulative Wounds</span>
+                <p>Will cause multiple hits which would start a timer to reduce the timer beyond the worst individual
+                    hit</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
+        <!-- Using volume buttons will not work for a web application, apparently-->
+        <div class="settingsObj" id="maxRetreatsObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Max Retreats</span>
+                <p>Changes the default number of times a fencer can retreat before elimination</p>
+            </div>
+            <input type="number" id="maxRetreatsInput" placeholder="3">
+        </div>
+        <div class="settingsObj" id="yourNameObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Your Name</span>
+                <p>Enter your name to have it displayed on the main menu</p>
+            </div>
+            <input type="text" id="yourName" placeholder="Your Name">
+        </div>
+    </page>
+    <page id="timerPage">
+        <div class="timerBody">
+            <h3 class="debugResults" id="hitOutput"></h3>
+            <timer id="timer">--</timer>
+            <timerlabel id="timerLabel">Nothing done</timerlabel>
+            <button class="startButton" id="timerButton">START</button>
+            <div class="timerControls">
+                <button class="subButton" id="endMatchButton">END MATCH</button>
+                <button class="subButton" id="nextHitButton">NEXT HIT</button>
+            </div>
+        </div>
+    </page>
+    <page id="aboutPage">
+
+    </page>
+    <page id="instructionsPage">
+
+    </page>
+    <page id="tournamentPage">
+        <h2 id="tournamentTitle">No Tournament Created</h2>
+        <input type="text" id="fighterInput" placeholder="Fighter Name">
+        <button id="addFighterButton">ADD FIGHTER</button>
+        <div id="fighterList" class="fighterList"></div>
+        <button id="getPairingButton">GET PAIRING</button>
+        <div id="pairingPopup" class="popup hidden">
+            <p id="pairingText"></p>
+            <button id="cancelPairingButton">CANCEL</button>
+            <button id="nextPairingButton">DIFFERENT PAIRING</button>
+            <button id="confirmPairingButton">FIGHT!</button>
+        </div>
+    </page>
+    <script src="Totentanz-script.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>
