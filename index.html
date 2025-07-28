@@ -93,7 +93,6 @@
         </div>
         <div class="settingsObj" id="preventOutliersObj">
             <div class="settingsObjTextContainer">
-
                 <span class="settingsObjTitle">Prevent Outliers</span>
                 <p>While enabled, light hits cannot cause incapacitation, and serious hits cannot do nothing</p>
             </div>
@@ -138,6 +137,16 @@
             </div>
             <input type="text" id="yourName" placeholder="Your Name">
         </div>
+        <div class="settingsObj" id="rebalancingObj">
+            <div class="settingsObjTextContainer">
+                <span class="settingsObjTitle">Rebalanced Timers</span>
+                <p>A modified distribution of incapacitations, timers, and "nothing done"s with reduced randomness. In development.</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
+        </div>
     </page>
     <page id="timerPage">
         <div class="timerBody">
@@ -152,10 +161,97 @@
         </div>
     </page>
     <page id="aboutPage">
+        <p>
+            Totentanz Wound Timer Web App Version 1.0
+        </p>
+        <p>
+            Last Updated July 27, 2025
+        </p>
+        <p></p>
+        <p>
+            Created by Chase Guida of Maryland Kunst des Fechtens
+        </p>
+        <p>
+            Based on the Android app by Jarrett Anderson and Sayer Anderson of Rocket City HEMA
+        </p>
+        <p>
+            Based on the wound system ruleset by Ben Strickling and Triangle Sword Guild
+        </p>
+        <p>
+            Questions? Suggestions? Bug reports? Email <a
+                href="mailto:chaseguida20@gmail.com">chaseguida20@gmail.com</a>
+        </p>
+
 
     </page>
     <page id="instructionsPage">
-
+        <p>This webapp is designed to be used to run Totentanz, a ruleset for Historical European Martial Arts (HEMA).
+            This system requires two or more judges and any number of fighters. A typical game is conducted as follows.
+        </p>
+        <p>
+            One of the judges takes on the job of managing the tournament. This is done through the tournament screen,
+            which can be reached with the trophy button in the top-right. Here, fighters can be added to the tournament
+            and their win/loss records can be tracked easily.
+        </p>
+        <p>
+            Once all fighters have had their names entered in the tournament screen, fights may begin. A tournament
+            could be run where fighters formally challenge each other, or with pairings orchestrated by the tournament
+            manager. This system is difficult to maintain due to the possibility that fighters could be eliminated at
+            any time, though the app has a feature to select pairings based on the tournament record.
+        </p>
+        <p>
+            The tournament screen allows the number of wins and retreats each fighter has earned to be tracked. A
+            fighter's score is displayed as (wins)-(retreats), which can each be altered using the buttons on either
+            side of the score. If a mistake is made in entering these scores, the appropriate button can be held down to
+            reset the number of wins or retreats. The button on the far right of a fighter's entry is used to indicate
+            that they have died.
+        </p>
+        <p>
+            When a fight begins, each fighter is assigned a judge. During a fight, these judges use the timer screen of
+            this app. When a fighter is hit, the judge assigned to them selects the location they were hit and the
+            appropriate severity. A hit can cause one of three results: incapacitation (X), nothing done (--), or a
+            bleedout timer.
+        </p>
+        <p>
+            When a fighter is incapacitated, the fight ends immediately and that fighter is eliminated from the
+            tournament. Otherwise, the judge informs the fighter of where they were hit, and asks them if they wish to
+            continue fighting. The judge should NOT inform the fighter of how much time they have remaining, or of the
+            severity of the hit, even if the result was nothing done. If the fighter chooses not to continue, they
+            recieve a retreat and their opponent wins the fight. If the fighter chooses to continue fighting, any timer
+            they have recieved is started when the fight resumes and begins counting down. Fighters should try to keep
+            their decisions secret from their opponent, for if both opponents choose to retreat at the same time, both
+            are awarded a loss and no one wins. After each fight, all wounds disappear.
+        </p>
+        <p>
+            All timers are paused between exchanges, and restarted when the fight continues. If a fighter is hit
+            repeatedly, the "Next Hit" button on the timer screen is used to carry their current timer forward as
+            additional wounds are recieved. By default, if a fighter has an active timer and recieves a new timer from a
+            new wound, the app chooses the smaller of the two timers to be used, and the other is discarded. With the
+            "Cumulative Wounds" setting, these two timers would both be considered (t = 1/( 1/t1 + 1/t2 )) for the new
+            timer.
+        </p>
+        <p>
+            As soon as a fighter's timer reaches zero, they have bled out. The judge tracking them should call a halt,
+            and that fighter is eliminated from the tournament. If a fighter's opponent is incapacitated, retreats, or
+            bleeds out, they are awarded a win for the match. There is no special accomadation for double hits in this
+            ruleset: all doubles and short-tempo afterblows can be handled by recording the resultant hits on each
+            fighter.
+        </p>
+        <p>
+            A fighter is eliminated from the tournament if they retreat three times, or are incapacitated. The game ends
+            when all but one fighter have died or retreated 3 times, or at a predetermined point (e.g. when each fighter
+            has fought each other fighter, except those who are eliminated). The winner is determined by the scores of
+            all fighters who are still alive, so it may be worth it to retreat from a fight rather than risk your life.
+            Your opponent could get themselves killed in the next one.
+        </p>
+        <p>
+            Determining rules for tournament safety is not within the scope of this app, so you should use whatever
+            standards are safe and agreed upon by all participants. Handling disarms or throws with dominance, if they
+            are allowed, could be ruled as a retreat against the fighter who has been disarmed/thrown, though any
+            strikes which were landed during that action should be judged. Striking a downed opponent to "finish them
+            off" should not be allowed. A fighter may yield during the fight, taking a retreat to avoid a bleedout
+            timer, but to avoid abuse, this should only be allowed after a proper exchange.
+        </p>
     </page>
     <page id="tournamentPage">
         <h2 id="tournamentTitle">No Tournament Created</h2>
