@@ -9,6 +9,7 @@ class settingsClass {
         this.cumulativeWounds = false;
         this.maxRetreats = 3;
         this.userName = "";
+        this.rebalanced = false;
     }
 }
 
@@ -55,6 +56,10 @@ document.getElementById("yourNameObj").querySelector('input').addEventListener('
     } else {
         document.getElementById("deviceName").innerHTML = "This device belongs to " + settings.userName;
     }
+});
+
+document.getElementById("rebalancingObj").querySelector('input').addEventListener('change', function () {
+    settings.rebalanced = this.checked;
 });
 
 document.getElementById("settingsButton").addEventListener('click', function (event) {
@@ -119,31 +124,103 @@ document.getElementById("backButton").addEventListener("click", function () {
     }
 });
 
-function hitButtonFunction(part) {
-    if (settings.enanableSeverity) {
-        let hitResults = [];
-        if (settings.preventOutliers) {
-            hitResults.push(getLight(part));
-            hitResults.push(getNormal(part));
-            hitResults.push(getSerious(part));
-        } else {
-            hitResults.push(getNormal(part));
-            hitResults.push(getNormal(part));
-            hitResults.push(getNormal(part));
+function gauss(mu, sigma) { //Stolen from someone on StackOverflow, gets a random number on a gaussian distribution
+    const u = 1 - Math.random(); // Converting [0,1) to (0,1]
+    const v = Math.random();
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    // Transform to the desired mean and standard deviation:
+    return z * sigma + mu;
+}
+
+function getLightRebalanced(part) {
+    result = Math.round(gauss(part.muLight, part.sigmaLight));
+    if (result > 45) {
+        return -1; // Nothing done
+    }
+    if (settings.preventOutliers) {
+        while (result < 1) {
+            result = Math.round(gauss(part.muLight, part.sigmaLight));
         }
-        let negOneCount = 0;
-        for (i = 0; i < hitResults.length; i++) {
-            if (hitResults[i] == -1) {
-                negOneCount++;
+    }
+    if (result < 1) {
+        return 0; // Incapacitation
+    }
+    if (result > 45) {
+        return -1; // Nothing done
+    }
+    return result;
+}
+
+function getNormalRebalanced(part) {
+    if (Math.random() < part.lightFrac) {
+        return getLightRebalanced(part);
+    }
+    return getSeriousRebalanced(part);
+}
+
+function getSeriousRebalanced(part) {
+    result = Math.round(gauss(part.muHeavy, part.sigmaHeavy));
+    if (settings.preventOutliers) {
+        while (result > 45) {
+            result = Math.round(gauss(part.muHeavy, part.sigmaHeavy));
+        }
+    }
+    if (result < 1) {
+        return 0; // Incapacitation
+    }
+    if (result > 45) {
+        return -1; // Nothing done
+    }
+    return result;
+}
+
+function hitButtonFunction(part, partRebalanced) {
+    if (settings.rebalanced) {
+        if (settings.enanableSeverity) {
+            let hitResults = [];
+            hitResults.push(getLightRebalanced(partRebalanced));
+            hitResults.push(getNormalRebalanced(partRebalanced));
+            hitResults.push(getSeriousRebalanced(partRebalanced));
+            let negOneCount = 0;
+            for (i = 0; i < hitResults.length; i++) {
+                if (hitResults[i] == -1) {
+                    negOneCount++;
+                }
             }
+            hitResults.sort((a, b) => b - a); /* Sorts in descending order, 0s at the end, then -1s after */
+            for (i = 0; i < negOneCount; i++) {
+                hitResults.pop();
+            }
+            setupSeverityScreen(negOneCount, hitResults);
+        } else {
+            goToTimer(getNormal(part));
         }
-        hitResults.sort((a, b) => b - a); /* Sorts in descending order, 0s at the end, then -1s after */
-        for (i = 0; i < negOneCount; i++) {
-            hitResults.pop();
-        }
-        setupSeverityScreen(negOneCount, hitResults);
     } else {
-        goToTimer(getNormal(part));
+        if (settings.enanableSeverity) {
+            let hitResults = [];
+            if (settings.preventOutliers) {
+                hitResults.push(getLight(part));
+                hitResults.push(getNormal(part));
+                hitResults.push(getSerious(part));
+            } else {
+                hitResults.push(getNormal(part));
+                hitResults.push(getNormal(part));
+                hitResults.push(getNormal(part));
+            }
+            let negOneCount = 0;
+            for (i = 0; i < hitResults.length; i++) {
+                if (hitResults[i] == -1) {
+                    negOneCount++;
+                }
+            }
+            hitResults.sort((a, b) => b - a); /* Sorts in descending order, 0s at the end, then -1s after */
+            for (i = 0; i < negOneCount; i++) {
+                hitResults.pop();
+            }
+            setupSeverityScreen(negOneCount, hitResults);
+        } else {
+            goToTimer(getNormal(part));
+        }
     }
 }
 
@@ -235,14 +312,14 @@ function goToTimer(hitResult) {
     }
 }
 
-document.getElementById("headButton").addEventListener("click", function () { hitButtonFunction(head); });
-document.getElementById("faceButton").addEventListener("click", function () { hitButtonFunction(face); });
-document.getElementById("neckButton").addEventListener("click", function () { hitButtonFunction(neck); });
-document.getElementById("chestThrustButton").addEventListener("click", function () { hitButtonFunction(chest); });
-document.getElementById("otherTorsoButton").addEventListener("click", function () { hitButtonFunction(torso); });
-document.getElementById("limbsCutButton").addEventListener("click", function () { hitButtonFunction(limbsCut); });
-document.getElementById("limbsThrustButton").addEventListener("click", function () { hitButtonFunction(limbsThrust); });
-document.getElementById("handsButton").addEventListener("click", function () { hitButtonFunction(hands); });
+document.getElementById("headButton").addEventListener("click", function () { hitButtonFunction(head, headRebalanced); });
+document.getElementById("faceButton").addEventListener("click", function () { hitButtonFunction(face, faceRebalanced); });
+document.getElementById("neckButton").addEventListener("click", function () { hitButtonFunction(neck, neckRebalanced); });
+document.getElementById("chestThrustButton").addEventListener("click", function () { hitButtonFunction(chest, chestRebalanced); });
+document.getElementById("otherTorsoButton").addEventListener("click", function () { hitButtonFunction(torso, torsoRebalanced); });
+document.getElementById("limbsCutButton").addEventListener("click", function () { hitButtonFunction(limbsCut, limbsCutRebalanced); });
+document.getElementById("limbsThrustButton").addEventListener("click", function () { hitButtonFunction(limbsThrust, limbsThrustRebalanced); });
+document.getElementById("handsButton").addEventListener("click", function () { hitButtonFunction(hands, handsRebalanced); });
 
 document.getElementById("setTimerButton").addEventListener("click", function () {
     if (settings.showSeverityResults) {
@@ -280,22 +357,40 @@ function randomInt(min, max) {
 
 
 class bodyPart {
-    constructor(name, xs, nones, times) {
-        this.name = name;
+    constructor(xs, nones, times) {
         this.nones = nones;
         this.xs = xs;
         this.times = times;
     }
 }
 
-const chest = new bodyPart("chestThrust", 79, 40, [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 25, 25, 26, 26, 26, 26, 27, 27, 27, 27, 29, 29, 29, 29, 29, 29, 29, 30, 30]);
-const torso = new bodyPart("otherTorso", 0, 381, [30, 32, 33, 39, 41, 41, 41, 41, 43, 50, 51, 54, 57, 59, 60]);
-const neck = new bodyPart("neck", 99, 39, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 12, 13, 14, 14, 15, 15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 24, 24, 25, 25, 25, 26, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30]);
-const head = new bodyPart("head", 119, 99, [10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 22, 22, 23, 23, 24, 24, 25, 25, 25, 26, 27, 27, 28, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 32, 32, 32, 33, 33, 33, 33, 33, 34, 34, 35, 35, 36, 40, 41, 41, 41, 41, 41, 42, 42, 42, 43, 43, 43, 43, 45, 46, 47, 48, 48, 49, 49, 50, 50, 50, 50, 51, 51, 52, 52, 52, 52, 53, 53, 54, 55, 55, 55, 56, 57, 57, 58, 59, 60]);
-const face = new bodyPart("face", 197, 40, [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 22, 22, 23, 24, 24, 27, 27, 27, 28, 29, 29, 29, 31, 31, 32, 32, 32, 33, 33, 34, 35, 37, 37, 38, 38, 39, 39, 39, 39, 39, 40, 40, 41, 41, 41, 41, 42, 42, 42, 42, 44, 45, 46, 46, 47, 48, 48, 51, 52, 55, 55, 56, 56, 56, 56, 58, 60, 60]);
-const limbsCut = new bodyPart("limbsCut", 40, 196, [10, 10, 10, 11, 12, 12, 12, 12, 12, 12, 13, 14, 14, 14, 14, 14, 14, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 21, 21, 21, 21, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 25, 25, 25, 25, 25, 26, 26, 27, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 30, 30, 30, 30, 31, 31, 33, 33, 33, 34, 34, 34, 34, 35, 35, 36, 36, 37, 38, 38, 38, 39, 39, 40, 40, 41, 41, 41, 41, 42, 42, 42, 42, 42, 42, 43, 43, 43, 43, 43, 44, 45, 45, 45, 45, 46, 46, 46, 47, 47, 47, 47, 48, 48, 49, 49, 50, 50, 51, 51, 51, 52, 53, 54, 54, 54, 54, 57, 57, 57, 57, 58, 58, 59, 59, 59, 59, 60, 60]);
-const limbsThrust = new bodyPart("limbsThrust", 0, 267, [10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 15, 15, 16, 16, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 18, 19, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 25, 26, 26, 26, 27, 27, 27, 28, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 35, 35, 35, 36, 36, 36, 36, 36, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 39, 39, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40]);
-const hands = new bodyPart("hands", 119, 79, [10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 19, 19, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 26, 27, 27, 28, 28, 28, 28, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 31, 32, 33, 33, 34, 34, 34, 35, 36, 36, 37, 37, 37, 38, 38, 39, 39, 40, 40, 41, 43, 44, 45, 46, 48, 48, 49, 50, 50, 50, 50, 50, 50, 52, 52, 53, 54, 54, 54, 55, 56, 58, 59, 59, 59, 59, 59, 60, 61, 61, 61, 62, 64, 64, 66, 66, 67, 67, 68, 68, 69, 69, 69, 69, 70, 70, 70, 72, 72, 73, 74, 74, 74, 75, 78, 78, 78, 79, 79, 80, 80, 80, 80, 81, 81, 83, 83, 84, 85, 85, 86, 87, 88, 89, 90, 90]);
+const chest = new bodyPart(79, 40, [5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 25, 25, 26, 26, 26, 26, 27, 27, 27, 27, 29, 29, 29, 29, 29, 29, 29, 30, 30]);
+const torso = new bodyPart(0, 381, [30, 32, 33, 39, 41, 41, 41, 41, 43, 50, 51, 54, 57, 59, 60]);
+const neck = new bodyPart(99, 39, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 12, 13, 14, 14, 15, 15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 19, 19, 19, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 24, 24, 25, 25, 25, 26, 26, 26, 26, 27, 27, 27, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30]);
+const head = new bodyPart(119, 99, [10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 21, 22, 22, 23, 23, 24, 24, 25, 25, 25, 26, 27, 27, 28, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 32, 32, 32, 33, 33, 33, 33, 33, 34, 34, 35, 35, 36, 40, 41, 41, 41, 41, 41, 42, 42, 42, 43, 43, 43, 43, 45, 46, 47, 48, 48, 49, 49, 50, 50, 50, 50, 51, 51, 52, 52, 52, 52, 53, 53, 54, 55, 55, 55, 56, 57, 57, 58, 59, 60]);
+const face = new bodyPart(197, 40, [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 22, 22, 23, 24, 24, 27, 27, 27, 28, 29, 29, 29, 31, 31, 32, 32, 32, 33, 33, 34, 35, 37, 37, 38, 38, 39, 39, 39, 39, 39, 40, 40, 41, 41, 41, 41, 42, 42, 42, 42, 44, 45, 46, 46, 47, 48, 48, 51, 52, 55, 55, 56, 56, 56, 56, 58, 60, 60]);
+const limbsCut = new bodyPart(40, 196, [10, 10, 10, 11, 12, 12, 12, 12, 12, 12, 13, 14, 14, 14, 14, 14, 14, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 21, 21, 21, 21, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23, 25, 25, 25, 25, 25, 26, 26, 27, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 30, 30, 30, 30, 31, 31, 33, 33, 33, 34, 34, 34, 34, 35, 35, 36, 36, 37, 38, 38, 38, 39, 39, 40, 40, 41, 41, 41, 41, 42, 42, 42, 42, 42, 42, 43, 43, 43, 43, 43, 44, 45, 45, 45, 45, 46, 46, 46, 47, 47, 47, 47, 48, 48, 49, 49, 50, 50, 51, 51, 51, 52, 53, 54, 54, 54, 54, 57, 57, 57, 57, 58, 58, 59, 59, 59, 59, 60, 60]);
+const limbsThrust = new bodyPart(0, 267, [10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 15, 15, 16, 16, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 18, 19, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 25, 26, 26, 26, 27, 27, 27, 28, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 33, 33, 33, 33, 34, 34, 34, 34, 34, 34, 35, 35, 35, 36, 36, 36, 36, 36, 37, 38, 38, 38, 38, 38, 38, 38, 38, 38, 39, 39, 39, 39, 39, 39, 40, 40, 40, 40, 40, 40]);
+const hands = new bodyPart(119, 79, [10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 19, 19, 20, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 26, 27, 27, 28, 28, 28, 28, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 31, 32, 33, 33, 34, 34, 34, 35, 36, 36, 37, 37, 37, 38, 38, 39, 39, 40, 40, 41, 43, 44, 45, 46, 48, 48, 49, 50, 50, 50, 50, 50, 50, 52, 52, 53, 54, 54, 54, 55, 56, 58, 59, 59, 59, 59, 59, 60, 61, 61, 61, 62, 64, 64, 66, 66, 67, 67, 68, 68, 69, 69, 69, 69, 70, 70, 70, 72, 72, 73, 74, 74, 74, 75, 78, 78, 78, 79, 79, 80, 80, 80, 80, 81, 81, 83, 83, 84, 85, 85, 86, 87, 88, 89, 90, 90]);
+
+class bodyPartRebalanced {
+    constructor(muLight, sigmaLight, muHeavy, sigmaHeavy, lightFrac) {
+        this.muLight = muLight;
+        this.sigmaLight = sigmaLight;
+        this.muHeavy = muHeavy;
+        this.sigmaHeavy = sigmaHeavy;
+        this.lightFrac = lightFrac; // The proportion of hits that fall in the light category, based on the density of sensitive tissue (major blood vessels, nerves, tendons, etc.) in the area
+    }
+}
+
+const chestRebalanced = new bodyPartRebalanced(35, 10, 5, 5, 0.25);
+const torsoRebalanced = new bodyPartRebalanced(45, 10, 10, 7, 0.6);
+const neckRebalanced = new bodyPartRebalanced(20, 5, 3, 5, 0.25);
+const headRebalanced = new bodyPartRebalanced(30, 10, 3, 5, 0.4);
+const faceRebalanced = new bodyPartRebalanced(30, 10, 2, 5, 0.1);
+const limbsCutRebalanced = new bodyPartRebalanced(40, 10, 10, 10, 0.6);
+const limbsThrustRebalanced = new bodyPartRebalanced(40, 15, 12, 3, 0.5);
+const handsRebalanced = new bodyPartRebalanced(40, 5, 10, 20, 0.5);
 
 
 function getLight(hitBodyPart) {
