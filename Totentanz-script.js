@@ -273,16 +273,21 @@ function goToTimer(hitResult) {
     } else if (hitResult == 0) {
         document.getElementById("hitOutput").innerHTML = "Hit was an incapacitation";
         timer = 0;
-    } else if (timer == 0) { /* A number was given, but they were already incapacitated. Should be impossible*/
-        document.getElementById("hitOutput").innerHTML = "Hit was " + String(hitResult) + ", but you were incapacitated? Report this if you see it";
     } else if (timer == -1) { /* A number was given, and this is the first injuring hit*/
         document.getElementById("hitOutput").innerHTML = "Hit from healthy to " + String(hitResult);
         timer = hitResult;
+    } else if (timer == 0) { /* A number was given, but they were already incapacitated. Should be impossible*/
+        document.getElementById("hitOutput").innerHTML = "Hit was " + String(hitResult) + ", but you were incapacitated? Report this if you see it";
     } else { /* A number was given, and and a timer was already in place */
         if (settings.cumulativeWounds) {
-            let newTimer = 1 / ((1 / hitResult) + (1 / timer));
-            document.getElementById("hitOutput").innerHTML = "Result was " + String(hitResult) + ", timer was " + String(timer) + ", kept " + String(newTimer);
-            timer = newTimer;
+            if (hitResult <= 0 || timer <= 0) {
+                timer = 0;
+                document.getElementById("hitOutput").innerHTML = "Result was incapacitation or timer was zero, timer set to 0, reached an unexpected part of code";
+            } else {
+                let newTimer = 1 / ((1 / hitResult) + (1 / timer));
+                document.getElementById("hitOutput").innerHTML = "Result was " + String(hitResult) + ", timer was " + String(timer) + ", kept " + String(newTimer);
+                timer = newTimer;
+            }
         } else if (hitResult > timer) {
             document.getElementById("hitOutput").innerHTML = "Result was " + String(hitResult) + ", timer was " + String(timer) + ", kept " + String(timer);
         } else {
@@ -325,7 +330,7 @@ document.getElementById("setTimerButton").addEventListener("click", function () 
     if (settings.showSeverityResults) {
         document.getElementById("hitOutput").innerHTML = "Timer set to " + String(document.getElementById("timerInput").value);
     }
-    timer = document.getElementById("timerInput").value;
+    timer = Number(document.getElementById("timerInput").value);
     prevList = [];
     showPage("timerPage");
     if (timer == 0) {
@@ -440,14 +445,17 @@ function runTimer() {
         document.getElementById("timerLabel").innerHTML = "seconds";
     }
     timeoutID = setTimeout(() => {
-        timer = timer - (new Date() - startTime) / 1000;
-        curSecond = Math.ceil(timer);
         if (timer <= 0) { timerFinished(); }
-        else { runTimer(); }
+        else {
+            timer = timer - (new Date() - startTime) / 1000;
+            curSecond = Math.ceil(timer);
+            runTimer();
+        }
     }, 100);
 }
 
 function startTimer() {
+    clearTimeout(timeoutID);
     if (timer != -1) {
         document.getElementById("timerButton").innerHTML = "PAUSE";
         document.getElementById("timerButton").disabled = false;
@@ -464,12 +472,18 @@ function startTimer() {
 
 
 function timerFinished() {
+    setTimeout(() => {
+        timer = 0;
+    }, 200);
     timer = 0;
     document.getElementById("timerLabel").innerHTML = "Incapacitated";
     document.getElementById("timer").innerHTML = "X";
     document.getElementById("timerButton").disabled = true;
     document.getElementById("nextHitButton").disabled = true;
     document.getElementById("endMatchButton").disabled = false;
+    document.getElementById("timerButton").removeEventListener("click", pauseTimer);
+    document.getElementById("timerButton").removeEventListener("click", startTimer);
+    document.getElementById("timerButton").addEventListener("click", startTimer);
     navigator.vibrate(500);
 }
 
@@ -500,6 +514,8 @@ function endMatch() {
     showPage("hitPage");
     timer = -1;
     curSeverities = [];
+    startTime = new Date();
+    curSecond = 0;
 }
 
 function nextHit() {

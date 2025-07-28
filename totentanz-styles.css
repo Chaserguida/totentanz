@@ -288,7 +288,7 @@ input:checked+.slider:before {
   justify-content: space-evenly;
   flex-direction: row;
   width: min(500px, 100vw);
-  margin-top: 20px;
+  margin-top: 40px;
 }
 
 .startButton {
